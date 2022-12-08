@@ -1,12 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katostrofik Git Page</title>
+  <meta charset="UTF-8">
+  <title>My Online Resume and Portfolio</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
 </head>
 <body>
-    <h1>GitHub Pages Website</h1>
-</body>
-</html>
+  <header>
+    <h1>My Online Resume and Portfolio</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="#about">About Me</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section id="about">
+        <h2>About Me</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam at nibh non metus finibus accumsan non et enim. Donec at tortor et risus varius interdum. Suspendisse potenti. Praesent vel dui vel tellus blandit pellentesque quis vel dolor. Aenean venenatis dictum urna, non suscipit libero. Fusce dictum rutrum arcu, a suscipit lectus malesuada eget. Fusce sed dui enim. Etiam et dolor dignissim, faucibus leo sit amet, fermentum purus. Duis at volutpat enim.</p>
+        <p>Etiam aliquet diam in tellus ullamcorper, a imperdiet diam interdum. Suspendisse fringilla bibendum egestas. Nunc vel faucibus velit, vel convallis metus. Quisque ut dapibus justo. Nulla quis lectus enim. Nulla facilisi. Nulla pulvinar tortor erat, quis aliquam lectus egestas sed. Nam eu scelerisque quam. Vivamus vulputate porta nibh, quis tempor elit mollis eget. Sed euismod tellus at erat ultricies, et porttitor risus dapibus. Ut sit amet vehicula nisi.</p>
+    </section>
+
+    <section id="experience">
+        <h2>Experience</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam at nibh non metus finibus accumsan non et enim. Donec at tortor et risus varius interdum. Suspendisse potenti. Praesent vel dui vel tellus blandit pellentesque quis vel dolor. Aenean venenatis dictum urna, non suscipit libero. Fusce dictum rutrum arcu, a suscipit lectus malesuada eget. Fusce sed dui enim. Etiam et dolor dignissim, faucibus leo sit amet, fermentum purus. Duis at volutpat enim.</p>
+        <p>Etiam aliquet diam in tellus ullamcorper, a imperdiet diam interdum. Suspendisse fringilla bibendum egestas. Nunc vel faucibus velit, vel convallis metus. Quisque ut dapibus justo. Nulla quis lectus enim. Nulla facilisi. Nulla pulvinar tortor erat, quis aliquam lectus egestas sed. Nam eu scelerisque quam. Vivamus vulputate porta nibh, quis tempor elit mollis eget. Sed euismod tellus at erat ultricies, et porttitor risus dapibus. Ut sit amet vehicula nisi.</p>
+    </section>
+
+    <section id="projects">
+        <h2>Projects</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam at nibh non metus finibus accumsan non et enim. Donec at tortor et risus varius interdum. Suspendisse potenti. Praesent vel dui vel tellus blandit pellentesque quis vel dolor. Aenean venenatis dictum urna, non suscipit libero. Fusce dictum rutrum arcu, a suscipit lectus malesuada eget. Fusce sed dui enim. Etiam et dolor dignissim, faucibus leo sit amet, fermentum purus. Duis at volutpat enim.</p>
+        <p>Etiam aliquet diam in tellus ullamcorper, a imperdiet diam interdum. Suspendisse fringilla bibendum egestas. Nunc vel faucibus velit, vel convallis metus. Quisque ut dapibus justo. Nulla quis lectus enim. Nulla facilisi. Nulla pulvinar tortor erat, quis aliquam lectus egestas sed. Nam eu scelerisque quam. Vivamus vulputate porta nibh, quis tempor elit mollis eget. Sed euismod tellus at erat ultricies, et porttitor risus dapibus. Ut sit amet vehicula nisi.</p>
+        
+        <h1>My Interactive Dashboard</h1>
+        <canvas id="myChart" width="400" height="400"></canvas>
+        <script src="dashboard.js"></script>
+    </section>
+
+    <section id="contact">
+        <h2>Contact</h2>
+        <form action="form.php" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name"><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email"><br>
+            <label for="message">Message:</label><br>
+            <textarea id="message" name="message" rows="5" cols="30"></textarea><br><br>
+            <input type="submit" value="Send">
+        </form>
+      </section>
