@@ -236,6 +236,52 @@
                 transform: scale(1.05);
             }
         }
+        
+        /* Add loading indicator */
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading-indicator.visible {
+            display: block;
+        }
+        
+        /* Default sounds notice */
+        .default-sounds {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            color: var(--dark);
+        }
+        
+        .default-sounds h3 {
+            margin-bottom: 10px;
+        }
+        
+        .default-sounds-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .default-sound {
+            background-color: var(--accent);
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -260,10 +306,19 @@
                 <label for="soundFile">Sound File:</label>
                 <input type="file" id="soundFile" accept="audio/*">
                 
+                <div class="default-sounds">
+                    <h3>Or choose a built-in sound:</h3>
+                    <div class="default-sounds-list" id="defaultSoundsList">
+                        <!-- Default sounds will be added here -->
+                    </div>
+                </div>
+                
                 <button class="save-button" id="saveConfig">Save</button>
             </div>
         </div>
     </div>
+    
+    <div class="loading-indicator" id="loadingIndicator">Loading sounds...</div>
     
     <button class="fullscreen-button" id="fullscreenButton">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -273,6 +328,11 @@
             <path d="M21 21H15V19H19V15H21V21Z" fill="white"/>
         </svg>
     </button>
+    
+    <!-- Audio elements that will be referenced instead of creating new ones -->
+    <div id="audioContainer" style="display: none;">
+        <!-- Audio elements will be created here -->
+    </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -287,6 +347,9 @@
             const soundFile = document.getElementById('soundFile');
             const saveConfig = document.getElementById('saveConfig');
             const fullscreenButton = document.getElementById('fullscreenButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const audioContainer = document.getElementById('audioContainer');
+            const defaultSoundsList = document.getElementById('defaultSoundsList');
             
             let isConfigMode = false;
             let currentButtonIndex = -1;
@@ -295,8 +358,47 @@
             let currentSequence = [];
             
             // Audio management
-            let currentAudio = null;
+            let currentAudioId = null;
             let currentPlayingButton = null;
+            
+            // Default sounds - built-in options that don't require file uploads
+            const defaultSounds = [
+                { name: "Bell", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_81895c242d.mp3?filename=bell-99106.mp3" },
+                { name: "Cartoon Jump", url: "https://cdn.pixabay.com/download/audio/2023/04/21/audio_e24a3b5133.mp3?filename=cartoon-jump-6462.mp3" },
+                { name: "Dog Bark", url: "https://cdn.pixabay.com/download/audio/2021/08/09/audio_d04b7be898.mp3?filename=dog-woof-47975.mp3" },
+                { name: "Tada", url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3?filename=tada-fanfare-a-6313.mp3" },
+                { name: "Drum", url: "https://cdn.pixabay.com/download/audio/2022/09/06/audio_31c2bccdf7.mp3?filename=kick-drum-41183.mp3" },
+                { name: "Piano", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8a849e4c5.mp3?filename=grand-piano-65103.mp3" },
+                { name: "Cat Meow", url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_e2b642fa1f.mp3?filename=cat-meow-14536.mp3" },
+                { name: "Cow Moo", url: "https://cdn.pixabay.com/download/audio/2022/06/04/audio_a1f8a16f7d.mp3?filename=cow-moo-96673.mp3" },
+                { name: "Clapping", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c82d79ccfc.mp3?filename=clapping-crowd-96733.mp3" }
+            ];
+            
+            // Populate default sounds list
+            defaultSounds.forEach((sound, index) => {
+                const button = document.createElement('button');
+                button.className = 'default-sound';
+                button.textContent = sound.name;
+                button.dataset.url = sound.url;
+                button.addEventListener('click', function() {
+                    selectDefaultSound(this.dataset.url, this.textContent);
+                });
+                defaultSoundsList.appendChild(button);
+            });
+            
+            // Function to select a default sound
+            function selectDefaultSound(url, name) {
+                // Clear file input since we're using a default sound
+                soundFile.value = '';
+                
+                // Update button label if it's the default
+                if (buttonLabel.value === `Button ${currentButtonIndex + 1}`) {
+                    buttonLabel.value = name;
+                }
+                
+                // Store URL for saving
+                soundFile.dataset.defaultUrl = url;
+            }
             
             // Create buttons
             for (let i = 0; i < 12; i++) {
@@ -308,9 +410,18 @@
                 // Load saved configuration if exists
                 const savedConfig = localStorage.getItem(`soundButton_${i}`);
                 if (savedConfig) {
-                    const config = JSON.parse(savedConfig);
-                    button.innerHTML = config.label;
-                    button.dataset.sound = config.sound;
+                    try {
+                        const config = JSON.parse(savedConfig);
+                        button.innerHTML = config.label;
+                        button.dataset.soundId = config.soundId;
+                        
+                        // Create audio element if it doesn't exist
+                        if (config.soundUrl && !document.getElementById(config.soundId)) {
+                            createAudioElement(config.soundId, config.soundUrl);
+                        }
+                    } catch (e) {
+                        console.log("Error loading saved configuration:", e);
+                    }
                 }
                 
                 button.addEventListener('click', function() {
@@ -341,52 +452,71 @@
                 soundButtons.push(button);
             }
             
+            // Create audio element
+            function createAudioElement(id, url) {
+                const audio = document.createElement('audio');
+                audio.id = id;
+                audio.src = url;
+                audio.preload = 'auto';
+                
+                // Add event listener for when playback ends
+                audio.addEventListener('ended', function() {
+                    if (currentPlayingButton) {
+                        currentPlayingButton.classList.remove('playing');
+                    }
+                    currentAudioId = null;
+                    currentPlayingButton = null;
+                });
+                
+                audioContainer.appendChild(audio);
+                return audio;
+            }
+            
             // Handle sound playback with stop/start toggling
             function handleSoundPlayback(button) {
-                const soundData = button.dataset.sound;
-                if (!soundData) return;
+                const soundId = button.dataset.soundId;
+                if (!soundId) return;
+                
+                const audio = document.getElementById(soundId);
+                if (!audio) return;
                 
                 // If this button is currently playing, stop it
-                if (currentPlayingButton === button && currentAudio) {
+                if (currentPlayingButton === button && currentAudioId === soundId) {
                     stopCurrentSound();
                     return;
                 }
                 
                 // If another sound is playing, stop it first
-                if (currentAudio) {
+                if (currentAudioId) {
                     stopCurrentSound();
                 }
                 
-                // Play the new sound
-                const audio = new Audio(soundData);
-                
-                // Add event listener to remove playing class when sound ends
-                audio.addEventListener('ended', function() {
-                    if (currentPlayingButton) {
-                        currentPlayingButton.classList.remove('playing');
-                    }
-                    currentAudio = null;
-                    currentPlayingButton = null;
+                // Play the sound
+                audio.currentTime = 0;
+                audio.play().catch(error => {
+                    console.error("Error playing sound:", error);
                 });
                 
-                audio.play();
-                currentAudio = audio;
+                currentAudioId = soundId;
                 currentPlayingButton = button;
                 button.classList.add('playing');
             }
             
             // Stop current sound
             function stopCurrentSound() {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
+                if (currentAudioId) {
+                    const audio = document.getElementById(currentAudioId);
+                    if (audio) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
                 }
                 
                 if (currentPlayingButton) {
                     currentPlayingButton.classList.remove('playing');
                 }
                 
-                currentAudio = null;
+                currentAudioId = null;
                 currentPlayingButton = null;
             }
             
@@ -397,6 +527,11 @@
                     if (arr1[i] !== arr2[i]) return false;
                 }
                 return true;
+            }
+            
+            // Generate unique ID
+            function generateUniqueId() {
+                return 'sound_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
             }
             
             // Enter config mode
@@ -412,7 +547,7 @@
                     button.style.border = '3px dashed var(--dark)';
                 });
                 
-                alert('Configuration Mode Enabled! Click on a button to configure it's name and sound.');
+                alert('Configuration Mode Enabled! Click on a button to configure it.');
             }
             
             // Exit config mode
@@ -432,11 +567,18 @@
             function openButtonConfig(index) {
                 currentButtonIndex = index;
                 
+                // Reset default sound selection
+                soundFile.dataset.defaultUrl = '';
+                
                 // Load saved configuration if exists
                 const savedConfig = localStorage.getItem(`soundButton_${index}`);
                 if (savedConfig) {
-                    const config = JSON.parse(savedConfig);
-                    buttonLabel.value = config.label;
+                    try {
+                        const config = JSON.parse(savedConfig);
+                        buttonLabel.value = config.label;
+                    } catch (e) {
+                        buttonLabel.value = `Button ${index + 1}`;
+                    }
                 } else {
                     buttonLabel.value = `Button ${index + 1}`;
                 }
@@ -462,29 +604,68 @@
                 const label = buttonLabel.value || `Button ${currentButtonIndex + 1}`;
                 button.innerHTML = label;
                 
+                // Show loading indicator if uploading a file
+                if (soundFile.files.length > 0) {
+                    loadingIndicator.classList.add('visible');
+                }
+                
+                // Check if we're using a default sound
+                if (soundFile.dataset.defaultUrl) {
+                    const soundId = 'sound_default_' + currentButtonIndex;
+                    const soundUrl = soundFile.dataset.defaultUrl;
+                    
+                    // Create or update audio element
+                    let audioElement = document.getElementById(soundId);
+                    if (!audioElement) {
+                        audioElement = createAudioElement(soundId, soundUrl);
+                    } else {
+                        audioElement.src = soundUrl;
+                    }
+                    
+                    // Update button data
+                    button.dataset.soundId = soundId;
+                    
+                    // Save to localStorage
+                    localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
+                        label: label,
+                        soundId: soundId,
+                        soundUrl: soundUrl
+                    }));
+                    
+                    closeConfigModal();
+                    return;
+                }
+                
                 // Handle sound file
                 const file = soundFile.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const soundData = e.target.result;
-                        button.dataset.sound = soundData;
-                        
-                        // Save to localStorage
-                        localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
-                            label: label,
-                            sound: soundData
-                        }));
-                        
-                        closeConfigModal();
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    // Save just the label if no new sound file
-                    const currentSound = button.dataset.sound || '';
+                    // Instead of storing the data URL, create a blob URL
+                    const soundId = generateUniqueId();
+                    
+                    // Create a unique URL for the file
+                    const soundUrl = URL.createObjectURL(file);
+                    
+                    // Create audio element
+                    createAudioElement(soundId, soundUrl);
+                    
+                    // Update button data
+                    button.dataset.soundId = soundId;
+                    
+                    // Save to localStorage - only save the ID and label, not the actual sound data
                     localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
                         label: label,
-                        sound: currentSound
+                        soundId: soundId,
+                        soundUrl: soundUrl  // This is a blob URL
+                    }));
+                    
+                    loadingIndicator.classList.remove('visible');
+                    closeConfigModal();
+                } else {
+                    // If no new sound, just update the label
+                    localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
+                        label: label,
+                        soundId: button.dataset.soundId,
+                        soundUrl: button.dataset.soundId ? document.getElementById(button.dataset.soundId).src : ''
                     }));
                     
                     closeConfigModal();
@@ -548,6 +729,11 @@
             document.addEventListener('dblclick', function(event) {
                 event.preventDefault();
             });
+            
+            // Warning about localStorage on GitHub Pages
+            if (window.location.hostname.includes('github.io')) {
+                console.log('Note: GitHub Pages may have limited localStorage capacity. Large sound files might not be stored properly.');
+            }
         });
     </script>
 </body>
