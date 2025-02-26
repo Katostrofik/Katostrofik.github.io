@@ -1,55 +1,554 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Online Resume and Portfolio</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kid's Sound Board</title>
+    <style>
+        :root {
+            --primary: #FF2B2B;    /* Bright Red */
+            --secondary: #3366FF;  /* Bright Blue */
+            --accent: #FFCC00;     /* Yellow */
+            --dark: #6633CC;       /* Purple */
+            --light: #E6F7FF;      /* Light Blue */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: var(--light);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+        }
+        
+        header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background-color: var(--primary);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 1000px;
+            flex-grow: 1;
+        }
+        
+        .sound-button {
+            border-radius: 15px;
+            font-size: 1.5rem;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s, box-shadow 0.1s;
+            background-color: var(--secondary);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.2),
+                inset 0 -8px 0 rgba(0, 0, 0, 0.2),
+                inset 0 8px 0 rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .sound-button:active {
+            transform: translateY(5px);
+            box-shadow: 
+                0 5px 10px rgba(0, 0, 0, 0.2),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+                inset 0 4px 0 rgba(255, 255, 255, 0.5);
+        }
+        
+        .sound-button::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 20%;
+            width: 60%;
+            height: 20%;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+        
+        .sound-button:nth-child(4n+1) {
+            background-color: var(--primary);
+        }
+        
+        .sound-button:nth-child(4n+2) {
+            background-color: var(--secondary);
+        }
+        
+        .sound-button:nth-child(4n+3) {
+            background-color: var(--accent);
+        }
+        
+        .sound-button:nth-child(4n+4) {
+            background-color: var(--dark);
+        }
+        
+        /* Configuration modal */
+        .config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .config-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .config-header h2 {
+            color: var(--dark);
+        }
+        
+        .close-config {
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .close-config:hover {
+            background-color: #5553a3;
+        }
+        
+        .config-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .config-form label {
+            font-size: 1.2rem;
+            color: var(--dark);
+        }
+        
+        .config-form input[type="text"],
+        .config-form input[type="file"] {
+            padding: 10px;
+            border: 2px solid var(--secondary);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .save-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+            align-self: center;
+        }
+        
+        .save-button:hover {
+            background-color: #ff5050;
+        }
+        
+        .fullscreen-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .playing {
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>My Online Resume and Portfolio</h1>
-  </header>
-  <nav>
-    <ul>
-      <li><a href="#about">About Me</a></li>
-      <li><a href="#experience">Experience</a></li>
-      <li><a href="#projects">Projects</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
-  <main>
-    <section id="about">
-        <h2>About Me</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam at nibh non metus finibus accumsan non et enim. Donec at tortor et risus varius interdum. Suspendisse potenti. Praesent vel dui vel tellus blandit pellentesque quis vel dolor. Aenean venenatis dictum urna, non suscipit libero. Fusce dictum rutrum arcu, a suscipit lectus malesuada eget. Fusce sed dui enim. Etiam et dolor dignissim, faucibus leo sit amet, fermentum purus. Duis at volutpat enim.</p>
-        <p>Etiam aliquet diam in tellus ullamcorper, a imperdiet diam interdum. Suspendisse fringilla bibendum egestas. Nunc vel faucibus velit, vel convallis metus. Quisque ut dapibus justo. Nulla quis lectus enim. Nulla facilisi. Nulla pulvinar tortor erat, quis aliquam lectus egestas sed. Nam eu scelerisque quam. Vivamus vulputate porta nibh, quis tempor elit mollis eget. Sed euismod tellus at erat ultricies, et porttitor risus dapibus. Ut sit amet vehicula nisi.</p>
-    </section>
-
-    <section id="experience">
-        <h2>Experience</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam at nibh non metus finibus accumsan non et enim. Donec at tortor et risus varius interdum. Suspendisse potenti. Praesent vel dui vel tellus blandit pellentesque quis vel dolor. Aenean venenatis dictum urna, non suscipit libero. Fusce dictum rutrum arcu, a suscipit lectus malesuada eget. Fusce sed dui enim. Etiam et dolor dignissim, faucibus leo sit amet, fermentum purus. Duis at volutpat enim.</p>
-        <p>Etiam aliquet diam in tellus ullamcorper, a imperdiet diam interdum. Suspendisse fringilla bibendum egestas. Nunc vel faucibus velit, vel convallis metus. Quisque ut dapibus justo. Nulla quis lectus enim. Nulla facilisi. Nulla pulvinar tortor erat, quis aliquam lectus egestas sed. Nam eu scelerisque quam. Vivamus vulputate porta nibh, quis tempor elit mollis eget. Sed euismod tellus at erat ultricies, et porttitor risus dapibus. Ut sit amet vehicula nisi.</p>
-    </section>
-
-    <section id="projects">
-        <h2>Projects</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam at nibh non metus finibus accumsan non et enim. Donec at tortor et risus varius interdum. Suspendisse potenti. Praesent vel dui vel tellus blandit pellentesque quis vel dolor. Aenean venenatis dictum urna, non suscipit libero. Fusce dictum rutrum arcu, a suscipit lectus malesuada eget. Fusce sed dui enim. Etiam et dolor dignissim, faucibus leo sit amet, fermentum purus. Duis at volutpat enim.</p>
-        <p>Etiam aliquet diam in tellus ullamcorper, a imperdiet diam interdum. Suspendisse fringilla bibendum egestas. Nunc vel faucibus velit, vel convallis metus. Quisque ut dapibus justo. Nulla quis lectus enim. Nulla facilisi. Nulla pulvinar tortor erat, quis aliquam lectus egestas sed. Nam eu scelerisque quam. Vivamus vulputate porta nibh, quis tempor elit mollis eget. Sed euismod tellus at erat ultricies, et porttitor risus dapibus. Ut sit amet vehicula nisi.</p>
-        
-        <h1>My Interactive Dashboard</h1>
-        <canvas id="myChart" width="400" height="400"></canvas>
-        <script src="dashboard.js"></script>
-    </section>
-
-    <section id="contact">
-        <h2>Contact</h2>
-        <form action="form.php" method="post">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name"><br>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email"><br>
-            <label for="message">Message:</label><br>
-            <textarea id="message" name="message" rows="5" cols="30"></textarea><br><br>
-            <input type="submit" value="Send">
-        </form>
-      </section>
+    <header>
+        <h1>Fun Sound Board</h1>
+    </header>
+    
+    <div class="grid-container" id="soundBoardGrid">
+        <!-- Buttons will be created by JavaScript -->
+    </div>
+    
+    <div class="config-modal" id="configModal">
+        <div class="config-content">
+            <div class="config-header">
+                <h2>Configure Sound</h2>
+                <button class="close-config" id="closeConfig">Close</button>
+            </div>
+            <div class="config-form">
+                <label for="buttonLabel">Button Label:</label>
+                <input type="text" id="buttonLabel" placeholder="Enter a label for the button">
+                
+                <label for="soundFile">Sound File:</label>
+                <input type="file" id="soundFile" accept="audio/*">
+                
+                <button class="save-button" id="saveConfig">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <button class="fullscreen-button" id="fullscreenButton">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3H9V5H5V9H3V3Z" fill="white"/>
+            <path d="M3 21H9V19H5V15H3V21Z" fill="white"/>
+            <path d="M21 3H15V5H19V9H21V3Z" fill="white"/>
+            <path d="M21 21H15V19H19V15H21V21Z" fill="white"/>
+        </svg>
+    </button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent right click
+            document.addEventListener('contextmenu', event => event.preventDefault());
+            
+            // Variables
+            const soundBoardGrid = document.getElementById('soundBoardGrid');
+            const configModal = document.getElementById('configModal');
+            const closeConfig = document.getElementById('closeConfig');
+            const buttonLabel = document.getElementById('buttonLabel');
+            const soundFile = document.getElementById('soundFile');
+            const saveConfig = document.getElementById('saveConfig');
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            
+            let isConfigMode = false;
+            let currentButtonIndex = -1;
+            let soundButtons = [];
+            let secretSequence = [0, 1, 2, 1, 0, 1, 2]; // The secret key sequence (button indices)
+            let currentSequence = [];
+            
+            // Audio management
+            let currentAudio = null;
+            let currentPlayingButton = null;
+            
+            // Create buttons
+            for (let i = 0; i < 12; i++) {
+                const button = document.createElement('div');
+                button.className = 'sound-button';
+                button.dataset.index = i;
+                button.innerHTML = `Button ${i + 1}`;
+                
+                // Load saved configuration if exists
+                const savedConfig = localStorage.getItem(`soundButton_${i}`);
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    button.innerHTML = config.label;
+                    button.dataset.sound = config.sound;
+                }
+                
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    
+                    // If in normal mode, play sound and check for secret sequence
+                    if (!isConfigMode) {
+                        handleSoundPlayback(this);
+                        
+                        // Update secret sequence
+                        currentSequence.push(index % 3);
+                        if (currentSequence.length > secretSequence.length) {
+                            currentSequence.shift();
+                        }
+                        
+                        // Check for secret sequence match
+                        if (arraysEqual(currentSequence, secretSequence)) {
+                            enterConfigMode();
+                        }
+                    } 
+                    // If in config mode, open config for specific button
+                    else {
+                        openButtonConfig(index);
+                    }
+                });
+                
+                soundBoardGrid.appendChild(button);
+                soundButtons.push(button);
+            }
+            
+            // Handle sound playback with stop/start toggling
+            function handleSoundPlayback(button) {
+                const soundData = button.dataset.sound;
+                if (!soundData) return;
+                
+                // If this button is currently playing, stop it
+                if (currentPlayingButton === button && currentAudio) {
+                    stopCurrentSound();
+                    return;
+                }
+                
+                // If another sound is playing, stop it first
+                if (currentAudio) {
+                    stopCurrentSound();
+                }
+                
+                // Play the new sound
+                const audio = new Audio(soundData);
+                
+                // Add event listener to remove playing class when sound ends
+                audio.addEventListener('ended', function() {
+                    if (currentPlayingButton) {
+                        currentPlayingButton.classList.remove('playing');
+                    }
+                    currentAudio = null;
+                    currentPlayingButton = null;
+                });
+                
+                audio.play();
+                currentAudio = audio;
+                currentPlayingButton = button;
+                button.classList.add('playing');
+            }
+            
+            // Stop current sound
+            function stopCurrentSound() {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                
+                if (currentPlayingButton) {
+                    currentPlayingButton.classList.remove('playing');
+                }
+                
+                currentAudio = null;
+                currentPlayingButton = null;
+            }
+            
+            // Check if two arrays are equal
+            function arraysEqual(arr1, arr2) {
+                if (arr1.length !== arr2.length) return false;
+                for (let i = 0; i < arr1.length; i++) {
+                    if (arr1[i] !== arr2[i]) return false;
+                }
+                return true;
+            }
+            
+            // Enter config mode
+            function enterConfigMode() {
+                isConfigMode = true;
+                document.body.classList.add('config-mode');
+                
+                // Stop any playing sounds
+                stopCurrentSound();
+                
+                // Visual indicator for config mode
+                soundButtons.forEach(button => {
+                    button.style.border = '3px dashed var(--dark)';
+                });
+                
+                alert('Configuration Mode Enabled! Click on a button to configure it.');
+            }
+            
+            // Exit config mode
+            function exitConfigMode() {
+                isConfigMode = false;
+                document.body.classList.remove('config-mode');
+                
+                // Remove visual indicator
+                soundButtons.forEach(button => {
+                    button.style.border = '';
+                });
+                
+                closeConfigModal();
+            }
+            
+            // Open button configuration
+            function openButtonConfig(index) {
+                currentButtonIndex = index;
+                
+                // Load saved configuration if exists
+                const savedConfig = localStorage.getItem(`soundButton_${index}`);
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    buttonLabel.value = config.label;
+                } else {
+                    buttonLabel.value = `Button ${index + 1}`;
+                }
+                
+                // Reset sound file input
+                soundFile.value = '';
+                
+                // Show modal
+                configModal.style.display = 'flex';
+            }
+            
+            // Close config modal
+            function closeConfigModal() {
+                configModal.style.display = 'none';
+                currentButtonIndex = -1;
+            }
+            
+            // Save button configuration
+            saveConfig.addEventListener('click', function() {
+                if (currentButtonIndex === -1) return;
+                
+                const button = soundButtons[currentButtonIndex];
+                const label = buttonLabel.value || `Button ${currentButtonIndex + 1}`;
+                button.innerHTML = label;
+                
+                // Handle sound file
+                const file = soundFile.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const soundData = e.target.result;
+                        button.dataset.sound = soundData;
+                        
+                        // Save to localStorage
+                        localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
+                            label: label,
+                            sound: soundData
+                        }));
+                        
+                        closeConfigModal();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Save just the label if no new sound file
+                    const currentSound = button.dataset.sound || '';
+                    localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
+                        label: label,
+                        sound: currentSound
+                    }));
+                    
+                    closeConfigModal();
+                }
+            });
+            
+            // Close config modal when close button is clicked
+            closeConfig.addEventListener('click', function() {
+                closeConfigModal();
+            });
+            
+            // Close config modal when clicking outside
+            configModal.addEventListener('click', function(event) {
+                if (event.target === configModal) {
+                    closeConfigModal();
+                }
+            });
+            
+            // Double tap to exit config mode
+            let lastTapTime = 0;
+            document.addEventListener('touchend', function(event) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                
+                if (tapLength < 500 && tapLength > 0 && isConfigMode) {
+                    exitConfigMode();
+                    event.preventDefault();
+                }
+                
+                lastTapTime = currentTime;
+            });
+            
+            // Exit config mode with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && isConfigMode) {
+                    exitConfigMode();
+                }
+            });
+            
+            // Fullscreen functionality
+            fullscreenButton.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+            
+            // Disable pinch zoom
+            document.addEventListener('touchmove', function(event) {
+                if (event.touches.length > 1) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Double tap prevention
+            document.addEventListener('dblclick', function(event) {
+                event.preventDefault();
+            });
+        });
+    </script>
+</body>
+</html>
