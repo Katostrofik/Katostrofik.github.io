@@ -3,738 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kid's Sound Board</title>
-    <style>
-        :root {
-            --primary: #FF2B2B;    /* Bright Red */
-            --secondary: #3366FF;  /* Bright Blue */
-            --accent: #FFCC00;     /* Yellow */
-            --dark: #6633CC;       /* Purple */
-            --light: #E6F7FF;      /* Light Blue */
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background-color: var(--light);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            touch-action: manipulation;
-        }
-        
-        header {
-            width: 100%;
-            padding: 20px;
-            text-align: center;
-            background-color: var(--primary);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 10;
-        }
-        
-        h1 {
-            color: white;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 1000px;
-            flex-grow: 1;
-        }
-        
-        .sound-button {
-            border-radius: 15px;
-            font-size: 1.5rem;
-            color: white;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.1s, box-shadow 0.1s;
-            background-color: var(--secondary);
-            box-shadow: 
-                0 10px 20px rgba(0, 0, 0, 0.2),
-                inset 0 -8px 0 rgba(0, 0, 0, 0.2),
-                inset 0 8px 0 rgba(255, 255, 255, 0.5);
-            position: relative;
-            overflow: hidden;
-            text-align: center;
-            padding: 10px;
-        }
-        
-        .sound-button:active {
-            transform: translateY(5px);
-            box-shadow: 
-                0 5px 10px rgba(0, 0, 0, 0.2),
-                inset 0 -4px 0 rgba(0, 0, 0, 0.2),
-                inset 0 4px 0 rgba(255, 255, 255, 0.5);
-        }
-        
-        .sound-button::after {
-            content: '';
-            position: absolute;
-            top: 10%;
-            left: 20%;
-            width: 60%;
-            height: 20%;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            filter: blur(5px);
-        }
-        
-        .sound-button:nth-child(4n+1) {
-            background-color: var(--primary);
-        }
-        
-        .sound-button:nth-child(4n+2) {
-            background-color: var(--secondary);
-        }
-        
-        .sound-button:nth-child(4n+3) {
-            background-color: var(--accent);
-        }
-        
-        .sound-button:nth-child(4n+4) {
-            background-color: var(--dark);
-        }
-        
-        /* Configuration modal */
-        .config-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        
-        .config-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 80%;
-            max-width: 600px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        .config-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 10px;
-        }
-        
-        .config-header h2 {
-            color: var(--dark);
-        }
-        
-        .close-config {
-            background-color: var(--dark);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.2s;
-        }
-        
-        .close-config:hover {
-            background-color: #5553a3;
-        }
-        
-        .config-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .config-form label {
-            font-size: 1.2rem;
-            color: var(--dark);
-        }
-        
-        .config-form input[type="text"],
-        .config-form input[type="file"] {
-            padding: 10px;
-            border: 2px solid var(--secondary);
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        
-        .save-button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            margin-top: 15px;
-            transition: background-color 0.2s;
-            align-self: center;
-        }
-        
-        .save-button:hover {
-            background-color: #ff5050;
-        }
-        
-        .fullscreen-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--dark);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .playing {
-            animation: pulse 1s infinite alternate;
-        }
-        
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            100% {
-                transform: scale(1.05);
-            }
-        }
-        
-        /* Add loading indicator */
-        .loading-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            z-index: 1000;
-            display: none;
-        }
-        
-        .loading-indicator.visible {
-            display: block;
-        }
-        
-        /* Default sounds notice */
-        .default-sounds {
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            color: var(--dark);
-        }
-        
-        .default-sounds h3 {
-            margin-bottom: 10px;
-        }
-        
-        .default-sounds-list {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        
-        .default-sound {
-            background-color: var(--accent);
-            color: black;
-            border: none;
-            border-radius: 5px;
-            padding: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <title>ModernZork - Text Adventure</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <h1>Fun Sound Board</h1>
-    </header>
-    
-    <div class="grid-container" id="soundBoardGrid">
-        <!-- Buttons will be created by JavaScript -->
-    </div>
-    
-    <div class="config-modal" id="configModal">
-        <div class="config-content">
-            <div class="config-header">
-                <h2>Configure Sound</h2>
-                <button class="close-config" id="closeConfig">Close</button>
+    <div class="game-container">
+        <header class="game-header">
+            <h1 class="game-title">ModernZork</h1>
+            <div class="game-controls">
+                <button id="inventory-btn" class="control-btn" title="Inventory">
+                    <i class="fas fa-briefcase"></i>
+                </button>
+                <button id="map-btn" class="control-btn" title="Map">
+                    <i class="fas fa-map"></i>
+                </button>
+                <button id="save-btn" class="control-btn" title="Save/Load">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button id="settings-btn" class="control-btn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
             </div>
-            <div class="config-form">
-                <label for="buttonLabel">Button Label:</label>
-                <input type="text" id="buttonLabel" placeholder="Enter a label for the button">
-                
-                <label for="soundFile">Sound File:</label>
-                <input type="file" id="soundFile" accept="audio/*">
-                
-                <div class="default-sounds">
-                    <h3>Or choose a built-in sound:</h3>
-                    <div class="default-sounds-list" id="defaultSoundsList">
-                        <!-- Default sounds will be added here -->
+        </header>
+        
+        <main class="game-content">
+            <div id="game-output" class="game-output"></div>
+            
+            <div class="command-input-container">
+                <span class="prompt">&gt;</span>
+                <input type="text" id="command-input" class="command-input" autocomplete="off" placeholder="Enter a command...">
+                <div id="autocomplete-suggestions" class="autocomplete-suggestions"></div>
+            </div>
+        </main>
+        
+        <div id="inventory-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Inventory</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div id="inventory-content" class="modal-body"></div>
+            </div>
+        </div>
+        
+        <div id="map-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Map</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div id="map-content" class="modal-body">
+                    <div id="map-container">
+                        <svg id="game-map" viewBox="0 0 500 500" width="100%" height="100%">
+                            <!-- Map will be rendered here dynamically -->
+                            <g id="map-locations"></g>
+                            <g id="map-paths"></g>
+                            <g id="map-labels"></g>
+                        </svg>
+                    </div>
+                    <div id="map-legend">
+                        <div class="legend-item">
+                            <span class="legend-color current-location"></span>
+                            <span>Current Location</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color visited-location"></span>
+                            <span>Visited Locations</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color unvisited-location"></span>
+                            <span>Known Locations</span>
+                        </div>
                     </div>
                 </div>
-                
-                <button class="save-button" id="saveConfig">Save</button>
+            </div>
+        </div>
+        
+        <div id="save-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Save/Load Game</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="save-game-section">
+                        <h3>Save Current Game</h3>
+                        <div class="input-group">
+                            <input type="text" id="save-name" placeholder="Enter save name...">
+                            <button id="save-game-btn" class="btn">Save Game</button>
+                        </div>
+                    </div>
+                    <div class="load-game-section">
+                        <h3>Load Saved Game</h3>
+                        <div id="saved-games-list" class="saved-games-list">
+                            <!-- Saved games will be listed here -->
+                            <p class="no-saves">No saved games found.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-tabs">
+                        <button class="tab-btn active" data-tab="general-settings">General</button>
+                        <button class="tab-btn" data-tab="adventures-settings">Adventures</button>
+                        <button class="tab-btn" data-tab="accessibility-settings">Accessibility</button>
+                    </div>
+                    
+                    <div id="general-settings" class="tab-content active">
+                        <div class="setting-group">
+                            <label for="text-color">Text Color:</label>
+                            <select id="text-color">
+                                <option value="green">Classic Green</option>
+                                <option value="amber">Amber</option>
+                                <option value="white">White</option>
+                                <option value="blue">Blue</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="font-size">Font Size:</label>
+                            <input type="range" id="font-size" min="12" max="24" value="16">
+                            <span id="font-size-value">16px</span>
+                        </div>
+                        <div class="setting-group">
+                            <label for="animation-speed">Text Animation Speed:</label>
+                            <select id="animation-speed">
+                                <option value="0">Instant</option>
+                                <option value="10">Fast</option>
+                                <option value="20">Medium</option>
+                                <option value="40">Slow</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="adventures-settings" class="tab-content">
+                        <div class="setting-group">
+                            <label for="adventure-select">Select Adventure:</label>
+                            <select id="adventure-select">
+                                <!-- Adventures will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div id="adventure-info" class="adventure-info">
+                            <!-- Adventure details will be displayed here -->
+                        </div>
+                        <div class="adventure-buttons">
+                            <button id="import-adventure-btn" class="btn">Import Adventure</button>
+                            <button id="export-adventure-btn" class="btn">Export Adventure</button>
+                        </div>
+                    </div>
+                    
+                    <div id="accessibility-settings" class="tab-content">
+                        <div class="setting-group">
+                            <label for="high-contrast">High Contrast Mode:</label>
+                            <input type="checkbox" id="high-contrast">
+                        </div>
+                        <div class="setting-group">
+                            <label for="screen-reader">Screen Reader Support:</label>
+                            <input type="checkbox" id="screen-reader">
+                        </div>
+                        <div class="setting-group">
+                            <label for="command-buttons">Show Command Buttons:</label>
+                            <input type="checkbox" id="command-buttons">
+                        </div>
+                    </div>
+                    
+                    <button id="save-settings" class="btn">Save Settings</button>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="loading-indicator" id="loadingIndicator">Loading sounds...</div>
+    <!-- Scripts -->
+    <!-- Load adventures first -->
+    <script src="adventure.js"></script>
+    <script src="space-adventure.js"></script>
+    <script src="haunted-adventure.js"></script>
+    <script src="alien-artifact-adventure.js"></script>
     
-    <button class="fullscreen-button" id="fullscreenButton">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 3H9V5H5V9H3V3Z" fill="white"/>
-            <path d="M3 21H9V19H5V15H3V21Z" fill="white"/>
-            <path d="M21 3H15V5H19V9H21V3Z" fill="white"/>
-            <path d="M21 21H15V19H19V15H21V21Z" fill="white"/>
-        </svg>
-    </button>
+    <!-- Load engine components next -->
+    <script src="ui-manager.js"></script>
+    <script src="command-handler.js"></script>
+    <script src="auto-complete.js"></script>
+    <script src="adventure-loader.js"></script>
+    <script src="map-generator.js"></script>
+    <script src="save-manager.js"></script>
+    <script src="achievement-system.js"></script>
+    <script src="story-journal.js"></script>
+    <script src="community-hub.js"></script>
+    <script src="adventure-directory.js"></script>
     
-    <!-- Audio elements that will be referenced instead of creating new ones -->
-    <div id="audioContainer" style="display: none;">
-        <!-- Audio elements will be created here -->
-    </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Prevent right click
-            document.addEventListener('contextmenu', event => event.preventDefault());
-            
-            // Variables
-            const soundBoardGrid = document.getElementById('soundBoardGrid');
-            const configModal = document.getElementById('configModal');
-            const closeConfig = document.getElementById('closeConfig');
-            const buttonLabel = document.getElementById('buttonLabel');
-            const soundFile = document.getElementById('soundFile');
-            const saveConfig = document.getElementById('saveConfig');
-            const fullscreenButton = document.getElementById('fullscreenButton');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const audioContainer = document.getElementById('audioContainer');
-            const defaultSoundsList = document.getElementById('defaultSoundsList');
-            
-            let isConfigMode = false;
-            let currentButtonIndex = -1;
-            let soundButtons = [];
-            let secretSequence = [0, 1, 2, 1, 0, 1, 2]; // The secret key sequence (button indices)
-            let currentSequence = [];
-            
-            // Audio management
-            let currentAudioId = null;
-            let currentPlayingButton = null;
-            
-            // Default sounds - built-in options that don't require file uploads
-            const defaultSounds = [
-                { name: "Bell", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_81895c242d.mp3?filename=bell-99106.mp3" },
-                { name: "Cartoon Jump", url: "https://cdn.pixabay.com/download/audio/2023/04/21/audio_e24a3b5133.mp3?filename=cartoon-jump-6462.mp3" },
-                { name: "Dog Bark", url: "https://cdn.pixabay.com/download/audio/2021/08/09/audio_d04b7be898.mp3?filename=dog-woof-47975.mp3" },
-                { name: "Tada", url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3?filename=tada-fanfare-a-6313.mp3" },
-                { name: "Drum", url: "https://cdn.pixabay.com/download/audio/2022/09/06/audio_31c2bccdf7.mp3?filename=kick-drum-41183.mp3" },
-                { name: "Piano", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8a849e4c5.mp3?filename=grand-piano-65103.mp3" },
-                { name: "Cat Meow", url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_e2b642fa1f.mp3?filename=cat-meow-14536.mp3" },
-                { name: "Cow Moo", url: "https://cdn.pixabay.com/download/audio/2022/06/04/audio_a1f8a16f7d.mp3?filename=cow-moo-96673.mp3" },
-                { name: "Clapping", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c82d79ccfc.mp3?filename=clapping-crowd-96733.mp3" }
-            ];
-            
-            // Populate default sounds list
-            defaultSounds.forEach((sound, index) => {
-                const button = document.createElement('button');
-                button.className = 'default-sound';
-                button.textContent = sound.name;
-                button.dataset.url = sound.url;
-                button.addEventListener('click', function() {
-                    selectDefaultSound(this.dataset.url, this.textContent);
-                });
-                defaultSoundsList.appendChild(button);
-            });
-            
-            // Function to select a default sound
-            function selectDefaultSound(url, name) {
-                // Clear file input since we're using a default sound
-                soundFile.value = '';
-                
-                // Update button label if it's the default
-                if (buttonLabel.value === `Button ${currentButtonIndex + 1}`) {
-                    buttonLabel.value = name;
-                }
-                
-                // Store URL for saving
-                soundFile.dataset.defaultUrl = url;
-            }
-            
-            // Create buttons
-            for (let i = 0; i < 12; i++) {
-                const button = document.createElement('div');
-                button.className = 'sound-button';
-                button.dataset.index = i;
-                button.innerHTML = `Button ${i + 1}`;
-                
-                // Load saved configuration if exists
-                const savedConfig = localStorage.getItem(`soundButton_${i}`);
-                if (savedConfig) {
-                    try {
-                        const config = JSON.parse(savedConfig);
-                        button.innerHTML = config.label;
-                        button.dataset.soundId = config.soundId;
-                        
-                        // Create audio element if it doesn't exist
-                        if (config.soundUrl && !document.getElementById(config.soundId)) {
-                            createAudioElement(config.soundId, config.soundUrl);
-                        }
-                    } catch (e) {
-                        console.log("Error loading saved configuration:", e);
-                    }
-                }
-                
-                button.addEventListener('click', function() {
-                    const index = parseInt(this.dataset.index);
-                    
-                    // If in normal mode, play sound and check for secret sequence
-                    if (!isConfigMode) {
-                        handleSoundPlayback(this);
-                        
-                        // Update secret sequence
-                        currentSequence.push(index % 3);
-                        if (currentSequence.length > secretSequence.length) {
-                            currentSequence.shift();
-                        }
-                        
-                        // Check for secret sequence match
-                        if (arraysEqual(currentSequence, secretSequence)) {
-                            enterConfigMode();
-                        }
-                    } 
-                    // If in config mode, open config for specific button
-                    else {
-                        openButtonConfig(index);
-                    }
-                });
-                
-                soundBoardGrid.appendChild(button);
-                soundButtons.push(button);
-            }
-            
-            // Create audio element
-            function createAudioElement(id, url) {
-                const audio = document.createElement('audio');
-                audio.id = id;
-                audio.src = url;
-                audio.preload = 'auto';
-                
-                // Add event listener for when playback ends
-                audio.addEventListener('ended', function() {
-                    if (currentPlayingButton) {
-                        currentPlayingButton.classList.remove('playing');
-                    }
-                    currentAudioId = null;
-                    currentPlayingButton = null;
-                });
-                
-                audioContainer.appendChild(audio);
-                return audio;
-            }
-            
-            // Handle sound playback with stop/start toggling
-            function handleSoundPlayback(button) {
-                const soundId = button.dataset.soundId;
-                if (!soundId) return;
-                
-                const audio = document.getElementById(soundId);
-                if (!audio) return;
-                
-                // If this button is currently playing, stop it
-                if (currentPlayingButton === button && currentAudioId === soundId) {
-                    stopCurrentSound();
-                    return;
-                }
-                
-                // If another sound is playing, stop it first
-                if (currentAudioId) {
-                    stopCurrentSound();
-                }
-                
-                // Play the sound
-                audio.currentTime = 0;
-                audio.play().catch(error => {
-                    console.error("Error playing sound:", error);
-                });
-                
-                currentAudioId = soundId;
-                currentPlayingButton = button;
-                button.classList.add('playing');
-            }
-            
-            // Stop current sound
-            function stopCurrentSound() {
-                if (currentAudioId) {
-                    const audio = document.getElementById(currentAudioId);
-                    if (audio) {
-                        audio.pause();
-                        audio.currentTime = 0;
-                    }
-                }
-                
-                if (currentPlayingButton) {
-                    currentPlayingButton.classList.remove('playing');
-                }
-                
-                currentAudioId = null;
-                currentPlayingButton = null;
-            }
-            
-            // Check if two arrays are equal
-            function arraysEqual(arr1, arr2) {
-                if (arr1.length !== arr2.length) return false;
-                for (let i = 0; i < arr1.length; i++) {
-                    if (arr1[i] !== arr2[i]) return false;
-                }
-                return true;
-            }
-            
-            // Generate unique ID
-            function generateUniqueId() {
-                return 'sound_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            }
-            
-            // Enter config mode
-            function enterConfigMode() {
-                isConfigMode = true;
-                document.body.classList.add('config-mode');
-                
-                // Stop any playing sounds
-                stopCurrentSound();
-                
-                // Visual indicator for config mode
-                soundButtons.forEach(button => {
-                    button.style.border = '3px dashed var(--dark)';
-                });
-                
-                alert('Configuration Mode Enabled! Click on a button to configure it.');
-            }
-            
-            // Exit config mode
-            function exitConfigMode() {
-                isConfigMode = false;
-                document.body.classList.remove('config-mode');
-                
-                // Remove visual indicator
-                soundButtons.forEach(button => {
-                    button.style.border = '';
-                });
-                
-                closeConfigModal();
-            }
-            
-            // Open button configuration
-            function openButtonConfig(index) {
-                currentButtonIndex = index;
-                
-                // Reset default sound selection
-                soundFile.dataset.defaultUrl = '';
-                
-                // Load saved configuration if exists
-                const savedConfig = localStorage.getItem(`soundButton_${index}`);
-                if (savedConfig) {
-                    try {
-                        const config = JSON.parse(savedConfig);
-                        buttonLabel.value = config.label;
-                    } catch (e) {
-                        buttonLabel.value = `Button ${index + 1}`;
-                    }
-                } else {
-                    buttonLabel.value = `Button ${index + 1}`;
-                }
-                
-                // Reset sound file input
-                soundFile.value = '';
-                
-                // Show modal
-                configModal.style.display = 'flex';
-            }
-            
-            // Close config modal
-            function closeConfigModal() {
-                configModal.style.display = 'none';
-                currentButtonIndex = -1;
-            }
-            
-            // Save button configuration
-            saveConfig.addEventListener('click', function() {
-                if (currentButtonIndex === -1) return;
-                
-                const button = soundButtons[currentButtonIndex];
-                const label = buttonLabel.value || `Button ${currentButtonIndex + 1}`;
-                button.innerHTML = label;
-                
-                // Show loading indicator if uploading a file
-                if (soundFile.files.length > 0) {
-                    loadingIndicator.classList.add('visible');
-                }
-                
-                // Check if we're using a default sound
-                if (soundFile.dataset.defaultUrl) {
-                    const soundId = 'sound_default_' + currentButtonIndex;
-                    const soundUrl = soundFile.dataset.defaultUrl;
-                    
-                    // Create or update audio element
-                    let audioElement = document.getElementById(soundId);
-                    if (!audioElement) {
-                        audioElement = createAudioElement(soundId, soundUrl);
-                    } else {
-                        audioElement.src = soundUrl;
-                    }
-                    
-                    // Update button data
-                    button.dataset.soundId = soundId;
-                    
-                    // Save to localStorage
-                    localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
-                        label: label,
-                        soundId: soundId,
-                        soundUrl: soundUrl
-                    }));
-                    
-                    closeConfigModal();
-                    return;
-                }
-                
-                // Handle sound file
-                const file = soundFile.files[0];
-                if (file) {
-                    // Instead of storing the data URL, create a blob URL
-                    const soundId = generateUniqueId();
-                    
-                    // Create a unique URL for the file
-                    const soundUrl = URL.createObjectURL(file);
-                    
-                    // Create audio element
-                    createAudioElement(soundId, soundUrl);
-                    
-                    // Update button data
-                    button.dataset.soundId = soundId;
-                    
-                    // Save to localStorage - only save the ID and label, not the actual sound data
-                    localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
-                        label: label,
-                        soundId: soundId,
-                        soundUrl: soundUrl  // This is a blob URL
-                    }));
-                    
-                    loadingIndicator.classList.remove('visible');
-                    closeConfigModal();
-                } else {
-                    // If no new sound, just update the label
-                    localStorage.setItem(`soundButton_${currentButtonIndex}`, JSON.stringify({
-                        label: label,
-                        soundId: button.dataset.soundId,
-                        soundUrl: button.dataset.soundId ? document.getElementById(button.dataset.soundId).src : ''
-                    }));
-                    
-                    closeConfigModal();
-                }
-            });
-            
-            // Close config modal when close button is clicked
-            closeConfig.addEventListener('click', function() {
-                closeConfigModal();
-            });
-            
-            // Close config modal when clicking outside
-            configModal.addEventListener('click', function(event) {
-                if (event.target === configModal) {
-                    closeConfigModal();
-                }
-            });
-            
-            // Double tap to exit config mode
-            let lastTapTime = 0;
-            document.addEventListener('touchend', function(event) {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTapTime;
-                
-                if (tapLength < 500 && tapLength > 0 && isConfigMode) {
-                    exitConfigMode();
-                    event.preventDefault();
-                }
-                
-                lastTapTime = currentTime;
-            });
-            
-            // Exit config mode with Escape key
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && isConfigMode) {
-                    exitConfigMode();
-                }
-            });
-            
-            // Fullscreen functionality
-            fullscreenButton.addEventListener('click', function() {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                    });
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    }
-                }
-            });
-            
-            // Disable pinch zoom
-            document.addEventListener('touchmove', function(event) {
-                if (event.touches.length > 1) {
-                    event.preventDefault();
-                }
-            }, { passive: false });
-            
-            // Double tap prevention
-            document.addEventListener('dblclick', function(event) {
-                event.preventDefault();
-            });
-            
-            // Warning about localStorage on GitHub Pages
-            if (window.location.hostname.includes('github.io')) {
-                console.log('Note: GitHub Pages may have limited localStorage capacity. Large sound files might not be stored properly.');
-            }
-        });
-    </script>
+    <!-- Load main script last -->
+    <script src="script.js"></script>
 </body>
 </html>
